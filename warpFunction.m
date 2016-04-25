@@ -1,4 +1,4 @@
-function warpFunction(img, focal_length)
+function imout = warpFunction(img, focal_length)
 	% This function project the original image on a cylinder
 
 	imout = zeros(size(img), 'uint8');
