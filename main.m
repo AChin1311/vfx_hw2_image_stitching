@@ -10,6 +10,10 @@ function main()
     % Features detection
     disp('Features detection');
 
+    % test of warp function
+    img = imread('image/parrington/prtn00.jpg');
+    warpFunction(img, 704.916);
+
     % Features matching
     disp('Features matching');
 
