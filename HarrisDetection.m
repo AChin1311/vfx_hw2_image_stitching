@@ -1,12 +1,5 @@
 function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
     % This function implements Harris corner detection
-
-    img = imread('image/parrington/prtn00.jpg');
-    w = 5;
-    sigma = 1;
-    k = 0.04;
-    threshold = 3;
-
 	% Turn RGB image into gray scale image
 	[row, col, dim] = size(img);
     disp([row col]);
@@ -15,7 +8,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	R = zeros(row, col);
 
 	% 1. Compute x and y derivatives of image
-	IG = GaussianFunction(I_double, 5, 1);
+	IG = GaussianFunction(I_double, w, sigma);
 	[I_x, I_y] = gradient(IG);
 
 	% 2. Compute products of derivatives at every pixel

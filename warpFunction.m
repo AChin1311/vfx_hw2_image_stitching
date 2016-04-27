@@ -21,5 +21,5 @@ function imout = warpFunction(img, focal_length)
 		end
 	end
 
-	imshow(imout);
+	%imshow(imout);
 end
