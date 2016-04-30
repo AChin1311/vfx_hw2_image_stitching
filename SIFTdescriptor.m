@@ -90,36 +90,17 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
                 b = [b; peaks(bin)];
             end
             c = pinv(A)*b;
-%             
-%             orientation = -pi + (peakIndex-1)*pi/18;
-%             A = [(orientation-pi/18)^2 (orientation-pi/18) 1;...
-%                   orientation.^2        orientation        1;...
-%                  (orientation+pi/18)^2 (orientation+pi/18) 1];
-%             bin = [mod(peakIndex+34, 36) + 1; mod(peakIndex+35, 36) + 1; mod(peakIndex+36, 36) + 1];
-%             b = [histogram(bin(1)); histogram(bin(2)); histogram(bin(3))];
-%             c = pinv(A)*b;
             max_orient = -c(2)/(2*c(1));
             while(max_orient < -pi)
                 max_orient = max_orient + 2*pi;
             end
             while(max_orient >= pi)
                 max_orient = max_orient - 2*pi;
-            end   
-%             if (max_orient < -pi)
-%                 n = floor((max_orient+pi)/(2*pi))+1;
-%                 max_orient = max_orient + 2*n*pi;
-%             end
-%             if (max_orient >= pi)
-%                 n = floor((max_orient-pi)/(2*pi))+1;
-%                 max_orient = max_orient - 2*n*pi;
-%             end
+            end
 
             pos = [pos; [x, y]];
             orient = [orient; max_orient];
-            disp('pos');
-            disp([x y]);
-            disp('ori');
-            disp(max_orient);
+
             % find the next peak
             peaks(peakIndex) = 0;
             [peakValue peakIndex] = max(peaks);
@@ -149,8 +130,7 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
             feat_samples(2, (i-1)*15+j) = sample_cor(j);
         end
     end
-    feat_window = 8;
-    
+    feat_window = 8;  
     
     for k = 1:size(orient)
         x = pos(k,1);

@@ -51,7 +51,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	% Thresholds
 	edge_threshold = ((10 + 1) ^ 2) / 10;
 	contrast = abs(filter2(fspecial('average', 5), I_double) - I_double);
-	contrast_threshold = 10;
+	contrast_threshold = 5;
 
 	feature_x = [];
 	feature_y = [];
