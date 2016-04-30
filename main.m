@@ -7,28 +7,30 @@ function main()
     files = dir([directory, '*.jpg']);
     img_num = length(files);
     img_info = imfinfo([directory, files(1).name]);
-    imgRow = img_info.Height;
-    imgCol = img_info.Width;
-    disp([img_num imgRow imgCol]);
-    img_array = zeros(imgRow, imgCol, 3, img_num);
+    imgy = img_info.Height;
+    imgx = img_info.Width;
+    img_array = zeros(imgy, imgx, 3, img_num);
     
     % Load focal length
     fileID = fopen([directory 'focal_len.txt'], 'r');
     focals = fscanf(fileID, '%f');
-    disp(focals);
+    %disp(focals);
     fclose(fileID);
     
     for i = 1 : img_num
         ImagePath = [directory, files(i).name];
-        img = imread(ImagePath);    
+        img = imread(ImagePath); 
         warpimg = warpFunction(img, focals(i));
-        disp(focals(i));
         img_array(:, :, :, i) = warpimg;
     end
     
     % Features detection
     disp('Features detection');
-
+    %testing
+    img = warpimg %last one
+    [feature_x, feature_y] = HarrisDetection(img, 5, 1, 0.04, 3);
+    disp(feature_x);
+    SIFTdescriptor(img, feature_x, feature_y);
     
     % Features matching
     disp('Features matching');

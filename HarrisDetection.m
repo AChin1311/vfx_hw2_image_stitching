@@ -7,7 +7,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	R = zeros(row, col);
 
 	% 1. Compute x and y derivatives of image
-	IG = GaussianFunction(I_double, 5, 1);
+	IG = GaussianFunction(I_double, w, sigma);
 	[I_x, I_y] = gradient(IG);
 
 	% 2. Compute products of derivatives at every pixel
