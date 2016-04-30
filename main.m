@@ -27,10 +27,9 @@ function main()
     % Features detection
     disp('Features detection');
     %testing
-    img = warpimg %last one
+    img = warpimg; %last one
     [feature_x, feature_y] = HarrisDetection(img, 5, 1, 0.04, 3);
-    disp(feature_x);
-    SIFTdescriptor(img, feature_x, feature_y);
+    [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y);
     
     % Features matching
     disp('Features matching');
