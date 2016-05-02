@@ -19,13 +19,15 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
 		% Calculate Euclidean distance between every two feature vectors
 		for j = 1 : size(des2, 1)
 			dist = sqrt(sum((des1(i, :) - des2(j, :)) .^ 2));
-			if (dist < min1(1))
+			% Find 2 closest features
+            if (dist < min1(1))
                 min2 = min1;
 				min1 = [dist j];
             elseif (dist < min2(1))
 				min2 = [dist j];
             end
         end
+        % accept if distance ratio < 0.8
         if ((min1(1) / min2(1)) < 0.8)
             match_des = [match_des; [i min1(2)]];
         end
