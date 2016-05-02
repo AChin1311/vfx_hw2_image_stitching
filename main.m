@@ -1,5 +1,5 @@
 function main()
-    read_cache = 0;
+    read_cache = 1;
     save_cache = 1;
     
     % Load Images
@@ -21,7 +21,7 @@ function main()
     
     % Features detection
     disp('Features detection');
-    for i = 1 : img_num
+    for i = 1 : 2
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
@@ -30,17 +30,12 @@ function main()
     
     %match = ransac(desc{1}, pos{1}, desc{2}, pos{2});
     %trans = matchImage(match, pos{1}, pos{2});
-    
-    %testing
-    %img = warpimg; %last one
-    %[feature_x, feature_y] = HarrisDetection(img, 5, 1, 0.04, 3);
-    %[orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y);
-    %disp(pos);
+  
     
             
     % Features detection
     disp('Features detection');
-    for i = 1:img_num
+    for i = 1:2
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -49,27 +44,34 @@ function main()
                 load(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i));
         else
             img = warpimg{i};
-            [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
-            % [orient, pos, desc] = SIFTdescriptor(img, fx, fy);
+            [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3); 
+            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
             
+            %[orient, pos, desc] = SIFTdescriptor(img, fx, fy);
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');
                 save(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i), 'fy');
-                %save(sprintf('image/%s/mat/orient_%02d.mat', image_serial, i), 'orient');
-                %save(sprintf('image/%s/mat/pos_%02d.mat', image_serial, i), 'pos');
-                %save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc');
+                save(sprintf('image/%s/mat/orient_%02d.mat', image_serial, i), 'orient_');
+                save(sprintf('image/%s/mat/pos_%02d.mat', image_serial, i), 'pos_');
+                save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc_');
             end
         end
-        %DrawPoint(img, fx, fy);
-        %DrawArrow(img, pos(:, 1), pos(:, 2), orient);
+        % DrawArrow(img, pos(:, 1), pos(:, 2), orient);
         
         fxs{i} = fx;
         fys{i} = fy;
-        %poss{i} = pos;
-        %orients{i} = orient;
-        %descs{i} = desc;
+        poss{i} = pos_;
+        orients{i} = orient_;
+        descs{i} = desc_;
     end
     
+    % DrawPoint(warpimg{1}, fys{1}, fxs{1});
+    % DrawPoint(warpimg{2}, fys{2}, fxs{2});
+    match = ransac(warpimg{1}, descs{1}, poss{1}, warpimg{2}, descs{2}, poss{2});
+    trans = matchImage(match, poss{1}, poss{2});
+    
+    % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
+    % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));
     % Features matching
     disp('Features matching');
 

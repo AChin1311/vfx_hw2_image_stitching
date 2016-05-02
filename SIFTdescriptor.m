@@ -1,23 +1,24 @@
 function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
+
     orient = [];
     pos = [];
     desc = [];
+
+    I = rgb2gray(img);
     % Orientation assignment
-    disp('SIFTdescriptor');
-    sigma = 1;
-    L = GaussianFunction(rgb2gray(img), 5, sigma);
-    [imgy imgx dim] = size(img);
+    L = filter2(fspecial('gaussian', [5 5]), I);
+    [y_len x_len] = size(I);
     
     % Gradient magnitude
     % Dx = L(x+1, y) - L(x-1, y); Dy = L(x, y+1) - L(x, y-1)
     % m(x, y) = sqrt(Dx^2 - Dy^2)
-    Dx = 0.5*L(2:(end-1), 3:end) - L(2:(end-1), 1:(end-2));
-    Dy = 0.5*L(3:end, 2:(end-1)) - L(1:(end-2), 2:(end-1));
-    magnitude = zeros(imgy, imgx);
+    Dx = 0.5*L(2:(end-1), 3:end)-L(2:(end-1), 1:(end-2));
+    Dy = 0.5*L(3:end, 2:(end-1))-L(1:(end-2), 2:(end-1));
+    magnitude = zeros(y_len, x_len);
     magnitude(2:(end-1), 2:(end-1)) = sqrt(Dx.^2 + Dy.^2);
     
     % Gradient orientation
-    grad = zeros(imgy, imgx);
+    grad = zeros(y_len, x_len);
     grad(2:(end-1), 2:(end-1)) = atan2(Dy, Dx);
     grad(find(grad == pi)) = -pi;
     
@@ -27,38 +28,26 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
     for i = 1:36
         orient_ref(i) = -pi+(i-1)*step; 
     end
-    disp('orient_ref');
-    disp(orient_ref);
     
     % Weighted by 2D gaussian kernel
     % sigma = 1.5 * scale of the keypoint
     winSize = 7;
     half = floor(winSize/2);
-    mask = fspecial('gaussian', [winSize winSize], 1.5*sigma);
+    mask = fspecial('gaussian', [winSize winSize], 1.5*0.5);
     
     % Time to vote!
-    for k = 1:size(feature_x)
+    for k = 1:numel(feature_x)
         x = feature_x(k);
         y = feature_y(k);
-        disp('feature');
-        disp(y);
-        disp(x);
         
         weighted_mag = mask .* magnitude((y-half):(y+half), (x-half):(x+half));
         window_orient = L((y-half):(y+half), (x-half):(x+half));
         histogram = zeros(36, 1);
         for bin = 1:36
             diff = mod(window_orient-orient_ref(bin)+pi, 2*pi) - pi;
-            histogram(bin) = histogram(bin)+sum( sum( weighted_mag.*max(1-abs(diff)/step,0) ) );
+            add = sum(weighted_mag.*max(1-abs(diff)/step,0))
+            histogram(bin) = histogram(bin)+sum(add);
         end
-        
-%         for w_y = 1:winSize
-%             for w_x = 1:winSize
-%                 b = min(floor(window_orient(w_y, w_x)/10)+1, 36);
-%                 
-%                 histogram(b) = histogram(b) + window_orient(w_y, w_x)*weighted_mag(w_y, w_x);
-%             end
-%         end
         
         peaks = zeros(36, 1);
         for i = 2:35
@@ -73,12 +62,12 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
             peaks(36) = histogram(36);
         end
         
-        % find the maxpeak
+        % find maxpeak
         [maxPeakValue peakIndex] = max(peaks);
-        disp('maxPeakValues');
-        disp(maxPeakValue);
-        disp('peakIndex');
-        disp(peakIndex);
+%         disp('maxPeakValues');
+%         disp(maxPeakValue);
+%         disp('peakIndex');
+%         disp(peakIndex);
         peakValue = maxPeakValue;
         
         while(peakValue > maxPeakValue*0.8)
@@ -106,52 +95,58 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
             [peakValue peakIndex] = max(peaks);
         end
     end
-    disp('pos');
-    disp(pos);
-    disp('ori');
-    disp(orient);
-    disp(size(pos));
-    disp(size(orient));
+%     disp('pos');
+%     disp(pos);
+%     disp('ori');
+%     disp(orient);
+%     disp(size(pos));
+%     disp(size(orient));
+    
     
     theta = pi/4;
     orient_angles = [-pi:theta:(pi-theta)];
-    cor = [-6, -2, 2, 6];
-    for i = 1:4
-        for j = 1:4
-            grid(1, (i-1)*4+j) = cor(i);
-            grid(2, (i-1)*4+j) = cor(j);
-        end
-    end
     
-    sample_cor = [-7.5:7.5];
-    for i = 1:15
-        for j = 1:15
-            feat_samples(1, (i-1)*15+j) = sample_cor(i);
-            feat_samples(2, (i-1)*15+j) = sample_cor(j);
-        end
-    end
+    [x_coords y_coords] = meshgrid( [-6:4:6] );
+    grid = [x_coords(:) y_coords(:)]';
+    [x_coords y_coords] = meshgrid( [-(2*4-0.5):(2*4-0.5)] );
+    feat_samples = [x_coords(:) y_coords(:)]';
+
+%     cor = [-6, -2, 2, 6];
+%     for i = 1:4
+%         for j = 1:4
+%             grid(1, (i-1)*4+j) = cor(i);
+%             grid(2, (i-1)*4+j) = cor(j);
+%         end
+%     end
+%     
+%     sample_cor = [-7.5:7.5];
+%     for i = 1:15
+%         for j = 1:15
+%             feat_samples(1, (i-1)*15+j) = sample_cor(i);
+%             feat_samples(2, (i-1)*15+j) = sample_cor(j);
+%         end
+%     end
     feat_window = 8;  
     
     for k = 1:size(orient)
         x = pos(k,1);
         y = pos(k,2);
-        disp('k x y');
-        disp(k);
-        disp(x);
-        disp(y);
-        
         % Rotate grid
         M = [cos(orient(k)) -sin(orient(k)); sin(orient(k)) cos(orient(k))];
-        for i = 1:16
-                tmp1(1, i) = x;
-                tmp1(2, i) = y;
-        end
-        rot_grid = M*grid + tmp1;
-        for i = 1:225
-                tmp2(1, i) = x;
-                tmp2(2, i) = y;
-        end
-        rot_samples = M*feat_samples + tmp2;
+        rot_grid = M*grid + repmat([x; y],1,size(grid,2));
+        rot_samples = M*feat_samples + repmat([x; y],1,size(feat_samples,2));
+        
+%         M = [cos(orient(k)) -sin(orient(k)); sin(orient(k)) cos(orient(k))];
+%         for i = 1:16
+%                 tmp1(1, i) = x;
+%                 tmp1(2, i) = y;
+%         end
+%         rot_grid = M*grid + tmp1;
+%         for i = 1:225
+%                 tmp2(1, i) = x;
+%                 tmp2(2, i) = y;
+%         end
+%         rot_samples = M*feat_samples + tmp2;
    
         feat_desc = zeros(1,128);
         for s = 1:size(rot_samples,2)
@@ -166,7 +161,6 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
                 Y(3, i) = y_sample+1;
             end
             
-            I = double(rgb2gray(img));
             G = interp2(I, X, Y, '*linear');
             G(find(isnan(G))) = 0;
             
