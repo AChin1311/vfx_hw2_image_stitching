@@ -21,7 +21,7 @@ function main()
     
     % Features detection
     disp('Features detection');
-    for i = 1 : 2
+    for i = 1 : img_num
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
@@ -40,7 +40,7 @@ function main()
             
     % Features detection
     disp('Features detection');
-    for i = 1:2
+    for i = 1:img_num
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -79,6 +79,6 @@ function main()
 
     % Images blending
     disp('Images blending');
-    blendImage(warpimg{1}, warpimg{2}, trans);
+    %blendImage(warpimg{1}, warpimg{2}, trans);
     
 end
