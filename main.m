@@ -20,7 +20,6 @@ function main()
     fclose(fileID);
     
     % Features detection
-    disp('Features detection');
     for i = 1 : 2
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
@@ -30,12 +29,7 @@ function main()
     
     %match = ransac(desc{1}, pos{1}, desc{2}, pos{2});
     %trans = matchImage(match, pos{1}, pos{2});
-    
-    %testing
-    %img = warpimg; %last one
-    %[feature_x, feature_y] = HarrisDetection(img, 5, 1, 0.04, 3);
-    %[orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y);
-    %disp(pos);
+  
     
             
     % Features detection
@@ -50,13 +44,9 @@ function main()
         else
             img = warpimg{i};
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
-<<<<<<< HEAD
+            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
             
-            [orient, pos, desc] = SIFTdescriptor(img, fx, fy);
-=======
-            % [orient, pos, desc] = SIFTdescriptor(img, fx, fy);
->>>>>>> addf4245fa47dcbf601ac303ee428cb0fb60850d
-            
+            %[orient, pos, desc] = SIFTdescriptor(img, fx, fy);
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');
                 save(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i), 'fy');
@@ -65,8 +55,7 @@ function main()
                 %save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc');
             end
         end
-        DrawPoint(img, fx, fy);
-        %DrawArrow(img, pos(:, 1), pos(:, 2), orient);
+         %DrawArrow(img, pos(:, 1), pos(:, 2), orient);
         
         fxs{i} = fx;
         fys{i} = fy;
