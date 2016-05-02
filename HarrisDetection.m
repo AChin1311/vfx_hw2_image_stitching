@@ -46,12 +46,12 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
     % f(0, 1) - 2f(0, 0) + f(0, -1)
 	y2 = [1; -2; 1];
     % f(-1, -1) - f(-1, 1) - f(1, -1) + f(1, 1) / 4
-	xy = [-1 0 1; 0 0 0; 1 0 -1];
+	xy = [1 0 -1; 0 0 0; -1 0 1];
 
 	% Thresholds
 	edge_threshold = ((10 + 1) ^ 2) / 10;
 	contrast = abs(filter2(fspecial('average', 5), I_double) - I_double);
-	contrast_threshold = 10;
+	contrast_threshold = 5;
 
 	feature_x = [];
 	feature_y = [];
@@ -72,7 +72,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 
 			ratio = (Tr_Hessian ^ 2) / Det_Hessian;
 
-			if ((Det_Hessian >= 0) && (ratio > edge_threshold) && (contrast(x, y) > contrast_threshold))
+			if ((Det_Hessian >= 0) && (ratio > edge_threshold))
 				feature_x = [feature_x; x];
 				feature_y = [feature_y; y];
             end
