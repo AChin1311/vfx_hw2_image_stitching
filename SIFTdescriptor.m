@@ -3,7 +3,6 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
     pos = [];
     desc = [];
     % Orientation assignment
-    disp('SIFTdescriptor');
     sigma = 1;
     L = GaussianFunction(rgb2gray(img), 5, sigma);
     [imgy imgx dim] = size(img);
@@ -113,23 +112,30 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
     disp(size(pos));
     disp(size(orient));
     
+    
     theta = pi/4;
     orient_angles = [-pi:theta:(pi-theta)];
-    cor = [-6, -2, 2, 6];
-    for i = 1:4
-        for j = 1:4
-            grid(1, (i-1)*4+j) = cor(i);
-            grid(2, (i-1)*4+j) = cor(j);
-        end
-    end
     
-    sample_cor = [-7.5:7.5];
-    for i = 1:15
-        for j = 1:15
-            feat_samples(1, (i-1)*15+j) = sample_cor(i);
-            feat_samples(2, (i-1)*15+j) = sample_cor(j);
-        end
-    end
+    [x_coords y_coords] = meshgrid( [-6:4:6] );
+    grid = [x_coords(:) y_coords(:)]';
+    [x_coords y_coords] = meshgrid( [-(2*4-0.5):(2*4-0.5)] );
+    feat_samples = [x_coords(:) y_coords(:)]';
+
+%     cor = [-6, -2, 2, 6];
+%     for i = 1:4
+%         for j = 1:4
+%             grid(1, (i-1)*4+j) = cor(i);
+%             grid(2, (i-1)*4+j) = cor(j);
+%         end
+%     end
+%     
+%     sample_cor = [-7.5:7.5];
+%     for i = 1:15
+%         for j = 1:15
+%             feat_samples(1, (i-1)*15+j) = sample_cor(i);
+%             feat_samples(2, (i-1)*15+j) = sample_cor(j);
+%         end
+%     end
     feat_window = 8;  
     
     for k = 1:size(orient)
@@ -142,16 +148,20 @@ function [orient, pos, desc] = SIFTdescriptor(img, feature_x, feature_y)
         
         % Rotate grid
         M = [cos(orient(k)) -sin(orient(k)); sin(orient(k)) cos(orient(k))];
-        for i = 1:16
-                tmp1(1, i) = x;
-                tmp1(2, i) = y;
-        end
-        rot_grid = M*grid + tmp1;
-        for i = 1:225
-                tmp2(1, i) = x;
-                tmp2(2, i) = y;
-        end
-        rot_samples = M*feat_samples + tmp2;
+        rot_grid = M*grid + repmat([x; y],1,size(grid,2));
+        rot_samples = M*feat_samples + repmat([x; y],1,size(feat_samples,2));
+        
+%         M = [cos(orient(k)) -sin(orient(k)); sin(orient(k)) cos(orient(k))];
+%         for i = 1:16
+%                 tmp1(1, i) = x;
+%                 tmp1(2, i) = y;
+%         end
+%         rot_grid = M*grid + tmp1;
+%         for i = 1:225
+%                 tmp2(1, i) = x;
+%                 tmp2(2, i) = y;
+%         end
+%         rot_samples = M*feat_samples + tmp2;
    
         feat_desc = zeros(1,128);
         for s = 1:size(rot_samples,2)

@@ -1,5 +1,5 @@
 function main()
-    read_cache = 1;
+    read_cache = 0;
     save_cache = 1;
     
     % Load Images
@@ -39,6 +39,7 @@ function main()
         else
             img = img_array{i};
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
+            
             [orient, pos, desc] = SIFTdescriptor(img, fx, fy);
             
             if (save_cache)
@@ -49,7 +50,7 @@ function main()
                 save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc');
             end
         end
-        %DrawPoint(img, fx, fy);
+        DrawPoint(img, fx, fy);
         %DrawArrow(img, pos(:, 1), pos(:, 2), orient);
         
         fxs{i} = fx;
