@@ -1,19 +1,17 @@
-function match = ransac(des1, pos1, des2, pos2)
-	%		calculate its distance to the fitted model
-	%		count the number of inlier points c
-	
+function match = ransac(img1, des1, pos1, img2, des2, pos2)	
 	% RANSAC parameters
 	n = 3;
 	p = 0.5;
 	P = 0.9999;
 	k = ceil(log(1 - P) / log(1 - p ^ n));
 	threshold = 10;
+    
+    DrawPoint(img1, pos1(:, 2), pos1(:, 1));
+    DrawPoint(img2, pos2(:, 2), pos2(:, 1));
 
 	% Find matched features
 	match_des = [];
-    disp('des size');
-    disp(size(des1));
-    disp(size(des2));
+    
 	for i = 1 : size(des1, 1)
 		min1 = [inf 0];
 		min2 = [inf 0];
@@ -28,11 +26,13 @@ function match = ransac(des1, pos1, des2, pos2)
 				min2 = [dist j];
             end
         end
-        
         if ((min1(1) / min2(1)) < 0.8)
             match_des = [match_des; [i min1(2)]];
         end
     end
+    
+    DrawPoint(img1, pos1(match_des(:, 1), 2), pos1(match_des(:, 1), 1));
+    DrawPoint(img2, pos2(match_des(:, 2), 2), pos2(match_des(:, 2), 1));
     
     disp(match_des);
     N = size(match_des, 1);
@@ -81,6 +81,6 @@ function match = ransac(des1, pos1, des2, pos2)
 		if size(match_tmp, 1) > size(match, 1)
 			match = match_tmp;
 		end
-	end
+    end
 	% output theta with the largest number c
 end

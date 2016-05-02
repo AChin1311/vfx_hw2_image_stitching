@@ -36,12 +36,17 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	mask = [1 1 1; 1 0 1; 1 1 1];
 	R_NMS = (R > imdilate(R, mask));
 	R_LM = R_thres & R_NMS;
-	[feature_x_result, feature_y_result] = find(R_LM);
-	DrawPoint(img, feature_x_result, feature_y_result);
+	[feature_y_result, feature_x_result] = find(R_LM);
+    disp('drwq');
+	DrawPoint(img, feature_y_result, feature_x_result);
 	% imshow(R_LM);
 
-	% Remove low contrast and edge
-	% parameters of derivative function
+	% Remove low contrast
+    D = GaussianFunction(I_double, w, 2 * sigma) - GaussianFunction(I_double, w, sigma);
+    D = D + 0.5 * (gradient(D));
+    disp(D);
+    % Remove edge
+	% Parameters of derivative function
     % f(1, 0) - 2f(0, 0) + f(-1, 0)
 	x2 = [1 -2 1];
     % f(0, 1) - 2f(0, 0) + f(0, -1)
@@ -51,8 +56,8 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 
 	% Thresholds
 	edge_threshold = ((10 + 1) ^ 2) / 10;
-	contrast = abs(filter2(fspecial('average', 5), I_double) - I_double);
-	contrast_threshold = 10;
+	contrast = abs(filter2(fspecial('gaussian', 5), I_double) - I_double);
+	contrast_threshold = 0.03;
 
 	feature_x = [];
 	feature_y = [];
@@ -62,10 +67,12 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 		y = feature_y_result(i);
 
 		% Remove boundary
-		if ((x > 7) && (x <= (col - 7)) && (y > 7) && (y <= col - 7))
+		if ((x > 7) && (x <= (col - 7)) && (y > 7) && (y <= row - 7))
 			% Remove edge
-			D_x2 = sum(I_double(y, x - 1:x + 1) .* x2);
-			D_y2 = sum(I_double(y - 1:y + 1, x) .* y2);
+            disp(size(I_double));
+            disp([x, y]);
+			D_y2 = sum(I_double(y, x - 1:x + 1) .* x2);
+			D_x2 = sum(I_double(y - 1:y + 1, x) .* y2);
 			D_xy = sum(sum(I_double(y - 1:y + 1, x - 1:x + 1) .* xy)) / 4;
 
 			Tr_Hessian = D_x2 + D_y2;
@@ -73,15 +80,11 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 
 			ratio = (Tr_Hessian ^ 2) / Det_Hessian;
 
-			if ((Det_Hessian >= 0) && (ratio < edge_threshold) && (contrast(y, x) > contrast_threshold))
-				feature_x = [feature_x; x];
-				feature_y = [feature_y; y];
+			if ((Det_Hessian >= 0) && (ratio < edge_threshold) && (D(y, x) > contrast_threshold))
+                feature_x = [feature_x; x];
+                feature_y = [feature_y; y];
             end
-            %if contrast(y, x) > contrast_threshold
-            %	feature_x = [feature_x; x];
-			%	feature_y = [feature_y; y];
-            %end
         end
     end
-    DrawPoint(img, feature_x, feature_y);
+    DrawPoint(img, feature_y, feature_x);
 end

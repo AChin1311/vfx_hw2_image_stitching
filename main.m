@@ -20,15 +20,13 @@ function main()
     fclose(fileID);
     
     % Features detection
+    disp('Features detection');
     for i = 1 : 2
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
         %img_array(:, :, :, i) = warpimg{i};
     end
-    
-    %match = ransac(desc{1}, pos{1}, desc{2}, pos{2});
-    %trans = matchImage(match, pos{1}, pos{2});
 
     % Features detection
     disp('Features detection');
@@ -60,16 +58,22 @@ function main()
                 save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc');
             end
         end
-         %DrawArrow(img, pos(:, 1), pos(:, 2), orient);
+        % DrawArrow(img, pos(:, 1), pos(:, 2), orient);
         
         fxs{i} = fx;
         fys{i} = fy;
-        
         poss{i} = pos;
         orients{i} = orient;
         descs{i} = desc;
     end
     
+    % DrawPoint(warpimg{1}, fys{1}, fxs{1});
+    % DrawPoint(warpimg{2}, fys{2}, fxs{2});
+    %match = ransac(warpimg{1}, descs{1}, poss{1}, warpimg{2}, descs{2}, poss{2});
+    %trans = matchImage(match, poss{1}, poss{2});
+    
+    % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
+    % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));
     % Features matching
     disp('Features matching');
 
