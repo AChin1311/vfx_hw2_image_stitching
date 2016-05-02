@@ -37,6 +37,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	R_NMS = (R > imdilate(R, mask));
 	R_LM = R_thres & R_NMS;
 	[feature_x_result, feature_y_result] = find(R_LM);
+	DrawPoint(img, feature_x_result, feature_y_result);
 	% imshow(R_LM);
 
 	% Remove low contrast and edge
@@ -51,7 +52,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	% Thresholds
 	edge_threshold = ((10 + 1) ^ 2) / 10;
 	contrast = abs(filter2(fspecial('average', 5), I_double) - I_double);
-	contrast_threshold = 5;
+	contrast_threshold = 10;
 
 	feature_x = [];
 	feature_y = [];
@@ -65,17 +66,22 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 			% Remove edge
 			D_x2 = sum(I_double(y, x - 1:x + 1) .* x2);
 			D_y2 = sum(I_double(y - 1:y + 1, x) .* y2);
-			D_xy = sum(sum(I_double(y - 1: y + 1, x - 1:x + 1) .* xy)) / 4;
+			D_xy = sum(sum(I_double(y - 1:y + 1, x - 1:x + 1) .* xy)) / 4;
 
 			Tr_Hessian = D_x2 + D_y2;
 			Det_Hessian = D_x2 * D_y2 - D_xy ^ 2;
 
 			ratio = (Tr_Hessian ^ 2) / Det_Hessian;
 
-			if ((Det_Hessian >= 0) && (ratio > edge_threshold))
+			if ((Det_Hessian >= 0) && (ratio < edge_threshold) && (contrast(y, x) > contrast_threshold))
 				feature_x = [feature_x; x];
 				feature_y = [feature_y; y];
             end
+            %if contrast(y, x) > contrast_threshold
+            %	feature_x = [feature_x; x];
+			%	feature_y = [feature_y; y];
+            %end
         end
     end
+    DrawPoint(img, feature_x, feature_y);
 end

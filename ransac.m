@@ -11,6 +11,9 @@ function match = ransac(des1, pos1, des2, pos2)
 
 	% Find matched features
 	match_des = [];
+    disp('des size');
+    disp(size(des1));
+    disp(size(des2));
 	for i = 1 : size(des1, 1)
 		min1 = [inf 0];
 		min2 = [inf 0];
@@ -26,7 +29,7 @@ function match = ransac(des1, pos1, des2, pos2)
             end
         end
         
-		if ((min1(1) / min2(1)) < 0.8)
+        if ((min1(1) / min2(1)) < 0.8)
             match_des = [match_des; [i min1(2)]];
         end
     end
@@ -58,15 +61,16 @@ function match = ransac(des1, pos1, des2, pos2)
 
 		% Fit parameter theta with these n samples
 		match_tmp = match_sample;
+        pos_dis = 0;
 		for i = 1 : n
-			pos_dis  = pos_dis + sqrt(sum(pos1_sample(i, :) - pos2_sample(i, :)) .^ 2));
+			pos_dis  = pos_dis + sqrt(sum(pos1_sample(i, :) - pos2_sample(i, :) .^ 2));
 		end
 		theta = pos_dis / n;
 	    
 		% For each other N - n points:
 		for i = 1 : (N - n)
 			% Calculate its distance to the fitted model
-			d = sqrt(sum(pos1_other(i, :) - pos2_other(i, :)) .^ 2)) - theta;
+			d = sqrt(sum(pos1_other(i, :) - pos2_other(i, :) .^ 2)) - theta;
 
 			% Count the number of inlier points c
 			if d < threshold
