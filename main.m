@@ -40,15 +40,17 @@ function main()
         else
             img = warpimg{i};
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
-            [pos, orient, desc] = descriptorSIFT(img, fx, fy);
-%             load(sprintf('image/%s/mat/orient_%02d.mat', image_serial, i));
-%             load(sprintf('image/%s/mat/pos_%02d.mat', image_serial, i));
-%             load(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i));
-%             disp(isequal(pos_, pos));
-%             disp(isequal(orient_, orient));
-%             disp(isequal(desc_, desc));
-            disp(size(pos));
-            disp(size(desc));
+            disp('key point');
+            disp(size(fx));
+            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
+            load(sprintf('image/%s/mat/orient_%02d.mat', image_serial, i));
+            load(sprintf('image/%s/mat/pos_%02d.mat', image_serial, i));
+            load(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i));
+            disp(isequal(pos_, pos));
+            disp(isequal(orient_, orient));
+            disp(isequal(desc_, desc));
+            disp(size(pos_));
+            disp(size(desc_));
             
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');
@@ -62,15 +64,15 @@ function main()
         
         fxs{i} = fx;
         fys{i} = fy;
-        poss{i} = pos;
-        orients{i} = orient;
-        descs{i} = desc;
+        poss{i} = pos_;
+        orients{i} = orient_;
+        descs{i} = desc_;
     end
     
     % DrawPoint(warpimg{1}, fys{1}, fxs{1});
     % DrawPoint(warpimg{2}, fys{2}, fxs{2});
-    %match = ransac(warpimg{1}, descs{1}, poss{1}, warpimg{2}, descs{2}, poss{2});
-    %trans = matchImage(match, poss{1}, poss{2});
+    match = ransac(warpimg{1}, descs{1}, poss{1}, warpimg{2}, descs{2}, poss{2});
+    trans = matchImage(match, poss{1}, poss{2});
     
     % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
     % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));

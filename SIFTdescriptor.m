@@ -5,7 +5,8 @@ function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
     desc = [];
     
     % Orientation assignment
-    L = filter2(fspecial('gaussian', [5 5]), double(rgb2gray(img)));
+    I = double(rgb2gray(img));
+    L = filter2(fspecial('gaussian', [5 5]), I);
     [y_len x_len dim] = size(img);
     
     % Gradient magnitude
@@ -17,9 +18,9 @@ function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
     magnitude(2:(end-1), 2:(end-1)) = sqrt(Dx.^2 + Dy.^2);
     
     % Gradient orientation
-    grad = zeros(y_len, x_len);
-    grad(2:(end-1), 2:(end-1)) = atan2(Dy, Dx);
-    grad(find(grad == pi)) = -pi;
+    gradient = zeros(y_len, x_len);
+    gradient(2:(end-1), 2:(end-1)) = atan2(Dy, Dx);
+    gradient(find(gradient == pi)) = -pi;
     
     % set up histogram
     step = pi/18;
@@ -78,6 +79,7 @@ function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
             end
             c = pinv(A)*b;
             max_orient = -c(2)/(2*c(1));
+
             while(max_orient < -pi)
                 max_orient = max_orient + 2*pi;
             end
@@ -102,52 +104,65 @@ function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
     disp(size(pos));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    orient_bin_spacing = pi/4;
-    orient_angles = [-pi:orient_bin_spacing:(pi-orient_bin_spacing)];
-    grid_spacing = 4;
-    [x_coords y_coords] = meshgrid( [-6:grid_spacing:6] );
-    feat_grid = [x_coords(:) y_coords(:)]';
-    [x_coords y_coords] = meshgrid( [-(2*grid_spacing-0.5):(2*grid_spacing-0.5)] );
-    feat_samples = [x_coords(:) y_coords(:)]';
-    feat_window = 2*grid_spacing;
-    for k = 1:size(pos,1)
+    spin_step = pi/4;
+    orient_angles = [-pi:spin_step:(pi-spin_step)];
+    
+    grid_step = 4;
+    feat_window = 2*grid_step;
+    
+    [cor_x cor_y] = meshgrid( [-6:grid_step:6] );
+    feat_grid = [cor_x(:) cor_y(:)]';
+    
+    [cor_x cor_y] = meshgrid( [-(2*grid_step-0.5):(2*grid_step-0.5)] );
+    feat_samples = [cor_x(:) cor_y(:)]';
+    
+    for k = 1:size(orient)
         x = pos(k,1);
-        y = pos(k,2);   
+        y = pos(k,2); 
+        
+        % rotate the grid
         M = [cos(orient(k)) -sin(orient(k)); sin(orient(k)) cos(orient(k))];
-        feat_rot_grid = M*feat_grid + repmat([x; y],1,size(feat_grid,2));
-        feat_rot_samples = M*feat_samples + repmat([x; y],1,size(feat_samples,2));
+        rot_grid = M*feat_grid + repmat([x; y], 1, size(feat_grid,2));
+        rot_samples = M*feat_samples + repmat([x; y], 1, size(feat_samples,2));
         feat_desc = zeros(1,128);
-        for s = 1:size(feat_rot_samples,2)
-            x_sample = feat_rot_samples(1,s);
-            y_sample = feat_rot_samples(2,s);
-            [X Y] = meshgrid( (x_sample-1):(x_sample+1), (y_sample-1):(y_sample+1) );
-            I = double(rgb2gray(img));
+        
+        % sampled over 16x16 array of locations
+        for s = 1:size(rot_samples,2)
+            x_sample = rot_samples(1,s);
+            y_sample = rot_samples(2,s);
+            [X Y] = meshgrid((x_sample-1):(x_sample+1), (y_sample-1):(y_sample+1));
             try
-                G = interp2( I, X, Y, '*linear' );
+                G = interp2(I, X, Y, '*linear');
             catch
-                G = interp2( I, X, Y, 'linear' );
+                G = interp2(I, X, Y, 'linear');
             end
             G(find(isnan(G))) = 0;
+            
             Dx = 0.5*(G(2,3) - G(2,1));
             Dy = 0.5*(G(3,2) - G(1,2));
-            mag_sample = sqrt( Dx^2 + Dy^2 );
-            grad_sample = atan2( Dy, Dx );
+            mag_sample = sqrt(Dx^2 + Dy^2);
+            grad_sample = atan2(Dy, Dx);
             if grad_sample == pi
                 grad_sample = -pi;
-            end      
-            x_wght = max(1 - (abs(feat_rot_grid(1,:) - x_sample)/grid_spacing), 0);
-            y_wght = max(1 - (abs(feat_rot_grid(2,:) - y_sample)/grid_spacing), 0); 
+            end
+            
+            x_wght = max(1 - (abs(rot_grid(1,:) - x_sample)/grid_step), 0);
+            y_wght = max(1 - (abs(rot_grid(2,:) - y_sample)/grid_step), 0); 
             pos_wght = reshape(repmat(x_wght.*y_wght,8,1),1,128);
-            diff = mod( grad_sample - orient(k) - orient_angles + pi, 2*pi ) - pi;
-            orient_wght = max(1 - abs(diff)/orient_bin_spacing,0);
-            orient_wght = repmat(orient_wght,1,16);         
+            diff = mod(grad_sample - orient(k) - orient_angles + pi, 2*pi) - pi;
+            orient_wght = repmat(max(1 - abs(diff)/spin_step,0),1,16);         
+            
             g = exp(-((x_sample-x)^2+(y_sample-y)^2)/(2*feat_window^2))/(2*pi*feat_window^2);
             feat_desc = feat_desc + pos_wght.*orient_wght*g*mag_sample;
         end
 
-        feat_desc = feat_desc / norm(feat_desc);
-        feat_desc( find(feat_desc > 0.2) ) = 0.2;
-        feat_desc = feat_desc / norm(feat_desc);
+        % normalize
+        feat_desc = feat_desc/norm(feat_desc);
+        % clip values larger than 0.2
+        feat_desc(find(feat_desc > 0.2)) = 0.2;
+        % renormalize
+        feat_desc = feat_desc/norm(feat_desc);
+        
         desc = [desc; feat_desc];
     end
 %     theta = pi/4;

@@ -44,7 +44,7 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 	% Remove low contrast
     D = GaussianFunction(I_double, w, 2 * sigma) - GaussianFunction(I_double, w, sigma);
     D = D + 0.5 * (gradient(D));
-    disp(D);
+    %disp(D);
     % Remove edge
 	% Parameters of derivative function
     % f(1, 0) - 2f(0, 0) + f(-1, 0)
@@ -69,8 +69,8 @@ function [feature_x, feature_y] = HarrisDetection(img, w, sigma, k, threshold)
 		% Remove boundary
 		if ((x > 7) && (x <= (col - 7)) && (y > 7) && (y <= row - 7))
 			% Remove edge
-            disp(size(I_double));
-            disp([x, y]);
+            %disp(size(I_double));
+            %disp([x, y]);
 			D_y2 = sum(I_double(y, x - 1:x + 1) .* x2);
 			D_x2 = sum(I_double(y - 1:y + 1, x) .* y2);
 			D_xy = sum(sum(I_double(y - 1:y + 1, x - 1:x + 1) .* xy)) / 4;
