@@ -21,7 +21,8 @@ function main()
     
     % Features detection
     disp('Features detection');
-    for i = 1 : 3
+
+    for i = 1 : img_num
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
@@ -30,7 +31,7 @@ function main()
 
     % Features detection
     disp('Features detection');
-    for i = 1:3
+    for i = 1:5
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -65,9 +66,12 @@ function main()
     
     % DrawPoint(warpimg{1}, fys{1}, fxs{1});
     % DrawPoint(warpimg{2}, fys{2}, fxs{2});
-    
-    match = ransac(warpimg{1}, descs{1}, poss{1}, warpimg{2}, descs{2}, poss{2});
-    trans = matchImage(match, poss{1}, poss{2});
+
+    for i = 1 : 4
+        match = ransac(warpimg{i}, descs{i}, poss{i}, warpimg{i + 1}, descs{i + 1}, poss{i + 1});
+        trans = matchImage(match, poss{i}, poss{i + 1});
+        blendImage(warpimg{i}, warpimg{i + 1}, trans);
+    end
     
     % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
     % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));
@@ -80,6 +84,4 @@ function main()
 
     % Images blending
     disp('Images blending');
-    trans = [200 5];
-    blendImage(warpimg{1}, warpimg{2}, trans);
 end
