@@ -1,10 +1,10 @@
 function main()
     read_cache = 0;
-    save_cache = 1;
+    save_cache = 0;
     
     % Load Images
 	disp('Loading Images');
-    image_serial = 'parrington/';
+    image_serial = 'grail/';
     directory = ['image/' image_serial];
 	output_filename = [image_serial '_stitched.png'];
     files = dir([directory, '*.jpg']);
@@ -44,6 +44,7 @@ function main()
             disp(size(fx));
             [pos_, orient_, desc_] = SIFTdescriptor(img, fx, fy);
             disp(size(pos_));
+
             
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');
@@ -78,6 +79,6 @@ function main()
 
     % Images blending
     disp('Images blending');
-    %blendImage(warpimg{1}, warpimg{2}, trans);
-    
+    trans = [200 5];
+    blendImage(warpimg{1}, warpimg{2}, trans);
 end
