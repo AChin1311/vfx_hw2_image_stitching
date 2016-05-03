@@ -1,26 +1,28 @@
-function imout = blendImage(im1, im2, trans)
-	%[row1, col1, dim1] = size(img1);
-	%[row2, col2, dim2] = size(img2);
-	%imout = zeros(row1 + abs(trans(2)), col1 + abs(trans(1)), dim1);
-
-	[row1, col1, channel] = size(im1);
-    [row2, col2, channel] = size(im2);
-    imout = zeros(row1+trans(2), col1+abs(trans(1)), channel);
-
-    blendWidth = trans(1);
-
-    % merge by 'plus'
-    for y = 1:row1
-        for x = 1:col1
-            imout(y,x,:) = im1(y,x,:);
+function imout = blendImage(img1, img2, trans)
+	[row1, col1, channel] = size(img1);
+	[row2, col2, channel] = size(img2);
+	imout = zeros(row1 + abs(trans(2)), col1 + abs(trans(1)), channel, 'uint8');
+    
+    blendWidth = col1 - abs(trans(1));
+    
+    % Alpha layer
+    alpha1 = ones(row1, col1); 
+    alpha2 = ones(row2, col2);
+    
+    for i = 1 : row1
+        alpha2(i, (end - blendWidth):end) = 1:(-1 / blendWidth):0;
+        for j = 1 : col1
+            imout(i, j, :) = img2(i, j, :) * alpha2(i, j);
         end
     end
-    %for y = 1:row2
-     %   for x = 1:col2 
-      %      x1 = x + size(imout, 2) - col2;
-       %     imout(y,x1,:) = im2(y,x,:);
-        %end
-    %end
-
-    imshow(imout, 'DisplayRange', [0, 255]);
+    
+    for i = 1 : row2
+        alpha1(i, 1:blendWidth + 1) = 0:(1 / blendWidth):1;
+        for j = 1 : col2
+            tmp = imout(i + abs(trans(2)), j + abs(trans(1)), :);
+            imout(i + abs(trans(2)), j + abs(trans(1)), :) = tmp + img1(i, j, :) * alpha1(i, j);
+        end
+    end
+    imshow(imout);
+    imwrite(imout, 'output.png');
 end

@@ -3,7 +3,7 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
 	n = 3;
 	p = 0.5;
 	P = 0.9999;
-	k = ceil(log(1 - P) / log(1 - p ^ n));
+	k = ceil(log(1 - P) / log(1 - p ^ n)) + 100;
 	threshold = 10;
     
     DrawPoint(img1, pos1(:, 2), pos1(:, 1));
@@ -62,20 +62,17 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
 	    pos2_other = pos2(match_other(:, 2), :);
 
 		% Fit parameter theta with these n samples
-		match_tmp = match_sample;
-        pos_dis = 0;
-		for i = 1 : n
-			pos_dis  = pos_dis + sqrt(sum(pos1_sample(i, :) - pos2_sample(i, :) .^ 2));
-		end
-		theta = pos_dis / n;
+		match_tmp = [];
+        pos_dis = pos1_sample - pos2_sample;
+		theta = mean(pos_dis);
 	    
 		% For each other N - n points:
 		for i = 1 : (N - n)
 			% Calculate its distance to the fitted model
-			d = sqrt(sum(pos1_other(i, :) - pos2_other(i, :) .^ 2)) - theta;
+			d = (pos1_other(i, :) - pos2_other(i, :)) - theta;
 
 			% Count the number of inlier points c
-			if d < threshold
+			if norm(d) < threshold
 				match_tmp = [match_tmp; match_other(i, :)];
 			end
 		end
@@ -85,4 +82,6 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
 		end
     end
 	% output theta with the largest number c
+    DrawPoint(img1, pos1(match(:, 1), 2), pos1(match(:, 1), 1));
+    DrawPoint(img2, pos2(match(:, 2), 2), pos2(match(:, 2), 1));
 end
