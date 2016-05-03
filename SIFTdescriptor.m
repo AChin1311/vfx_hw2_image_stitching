@@ -139,7 +139,7 @@ function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
                         px_Dy = 0.5*(L(b_y(d+1), b_x(d)) - L(b_y(d-1), b_x(d)));
                         px_mag = sqrt(px_Dx^2 + px_Dy^2);
                         px_grad = atan(px_Dy/px_Dx);
-                        disp([px_Dy/px_Dx, px_Dx^2 + px_Dy^2]);
+                        %disp([px_Dy/px_Dx, px_Dx^2 + px_Dy^2]);
                         if px_grad == pi
                             px_grad = -pi;
                         end
