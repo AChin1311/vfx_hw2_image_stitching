@@ -42,15 +42,8 @@ function main()
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
             disp('key point');
             disp(size(fx));
-            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
-            load(sprintf('image/%s/mat/orient_%02d.mat', image_serial, i));
-            load(sprintf('image/%s/mat/pos_%02d.mat', image_serial, i));
-            load(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i));
-            disp(isequal(pos_, pos));
-            disp(isequal(orient_, orient));
-            disp(isequal(desc_, desc));
+            [pos_, orient_, desc_] = SIFTdescriptor(img, fx, fy);
             disp(size(pos_));
-            disp(size(desc_));
             
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');

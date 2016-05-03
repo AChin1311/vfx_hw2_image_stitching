@@ -1,4 +1,7 @@
 function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
+    % borrowed and modified from Thomas F. El-Maraghi
+    % May 2004
+
     pos = [];
     orient = [];
     desc = [];
@@ -100,7 +103,6 @@ function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
             end
             c = pinv(A)*b;
             max_orient = -c(2)/(2*c(1));
-            
             while( max_orient < -pi )
                 max_orient = max_orient + 2*pi;
             end
