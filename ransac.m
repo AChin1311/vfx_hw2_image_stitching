@@ -1,13 +1,10 @@
-function match = ransac(img1, des1, pos1, img2, des2, pos2)	
+function match = ransac(des1, pos1, des2, pos2)	
 	% RANSAC parameters
 	n = 3;
 	p = 0.5;
 	P = 0.9999;
 	k = ceil(log(1 - P) / log(1 - p ^ n)) + 100;
 	threshold = 10;
-    
-    DrawPoint(img1, pos1(:, 2), pos1(:, 1));
-    DrawPoint(img2, pos2(:, 2), pos2(:, 1));
 
 	% Find matched features
 	match_des = [];
@@ -33,13 +30,7 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
         end
     end
     
-    DrawPoint(img1, pos1(match_des(:, 1), 2), pos1(match_des(:, 1), 1));
-    DrawPoint(img2, pos2(match_des(:, 2), 2), pos2(match_des(:, 2), 1));
-    
-    disp(match_des);
     N = size(match_des, 1);
-    disp('match_des size');
-    disp(N);
     
     match = [];
     if N <= n
@@ -82,6 +73,6 @@ function match = ransac(img1, des1, pos1, img2, des2, pos2)
 		end
     end
 	% output theta with the largest number c
-    DrawPoint(img1, pos1(match(:, 1), 2), pos1(match(:, 1), 1));
-    DrawPoint(img2, pos2(match(:, 2), 2), pos2(match(:, 2), 1));
+    disp('matched descriptor size');
+    disp(size(match, 1));
 end

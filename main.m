@@ -1,27 +1,28 @@
 function main()
     read_cache = 0;
-    save_cache = 0;
-    
+    save_cache = 1;
+
     % Load Images
 	disp('Loading Images');
-    image_serial = 'grail/';
-    directory = ['image/' image_serial];
+    image_serial = 'grail';
+    directory = ['image/' image_serial '/'];
 	output_filename = [image_serial '_stitched.png'];
-    files = dir([directory, '*.jpg']);
+    files = dir([directory, '/*.jpg']);
     img_num = length(files);
-    img_info = imfinfo([directory, files(1).name]);
+    img_info = imfinfo([directory '/' files(1).name]);
     imgy = img_info.Height;
     imgx = img_info.Width;
     img_array = {};
     
     % Load focal length
+    disp('Loading focal length file')
     fileID = fopen([directory 'focal_len.txt'], 'r');
     focals = fscanf(fileID, '%f');
     fclose(fileID);
     
-    % Features detection
-    disp('Features detection');
-    for i = 1 : img_num
+    % Warping images
+    disp('Warping Images')
+    for i = 1 :img_num
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
@@ -30,7 +31,7 @@ function main()
 
     % Features detection
     disp('Features detection');
-    for i = 1:3
+    for i = 1:img_num
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -42,9 +43,9 @@ function main()
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
             disp('key point');
             disp(size(fx));
-            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
-            disp(size(pos_));
-
+            %[pos, orient, desc] = SIFTdescriptor(img, fx, fy);
+            [pos, orient, desc] = WTFdescriptor(img, fx, fy);
+            disp(size(pos));
             
             if (save_cache)
                 save(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i), 'fx');
@@ -54,36 +55,35 @@ function main()
                 save(sprintf('image/%s/mat/desc_%02d.mat', image_serial, i), 'desc');
             end
         end
-        % DrawArrow(img, pos(:, 1), pos(:, 2), orient);
         
         fxs{i} = fx;
         fys{i} = fy;
-        poss{i} = pos_;
-        orients{i} = orient_;
-        descs{i} = desc_;
+        poss{i} = pos;
+        orients{i} = orient;
+        descs{i} = desc;
     end
     
-    % DrawPoint(warpimg{1}, fys{1}, fxs{1});
-    % DrawPoint(warpimg{2}, fys{2}, fxs{2});
-    imout = warpimg{1};
-    for i = 1 : 2
-        match = ransac(warpimg{i}, descs{i}, poss{i}, warpimg{i + 1}, descs{i + 1}, poss{i + 1});
-        trans = matchImage(match, poss{i}, poss{i + 1});
-        imout = blendImage(imout, warpimg{i + 1}, trans);
-    end
-    
-    imshow(imout);
-    imwrite(imout, 'output.png');
-    
-    % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
-    % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));
     % Features matching
     disp('Features matching');
-
+    for i = 1 : img_num - 1
+        match{i} = ransac(descs{i}, poss{i}, descs{i + 1}, poss{i + 1});
+    end
     
     % Images matching
     disp('Images matching');
-
+    for i = 1 : img_num - 1
+        trans{i} = matchImage(match{i}, poss{i}, poss{i + 1});
+    end
+    
     % Images blending
     disp('Images blending');
+    imout = warpimg{1};
+    for i = 2 : img_num
+        imout = blendImage(imout, warpimg{i}, trans{i - 1});
+    end
+
+    % Saving panorama
+    disp('Saving panorama');
+    imshow(imout);
+    imwrite(imout, output_filename);
 end

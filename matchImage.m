@@ -18,15 +18,10 @@ function trans = matchImage(match, pos1, pos2)
 	A(n * 2 + 1, 3) = 1;
 	b(n * 2 + 1, 1) = 1;
     
-    disp('match');
-    disp(match);
-    disp('pos');
-    disp(pos1);
 
 	% Solve transaltion
 	result = round(A \ b);
 	trans = result(1 : 2);
-    disp('result');
-    disp(result);
+    disp('trans');
     disp(trans);
 end

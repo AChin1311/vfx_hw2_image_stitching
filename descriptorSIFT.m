@@ -1,7 +1,9 @@
 function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
-    % borrowed and modified from Thomas F. El-Maraghi
+    % achin borrowed and modified from drakeguan
+    % drakeguan borrowed and modified from Thomas F. El-Maraghi
     % May 2004
-
+    % it's a linked list
+    
     pos = [];
     orient = [];
     desc = [];
@@ -70,10 +72,12 @@ function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
         orient_hist = zeros(length(hist_orient), 1);
         for bin = 1:num_bins
             % Compute the diference of the orientations mod pi
-            diff = mod( grad_window - hist_orient(bin) + pi, 2*pi ) - pi;
-
+            
+            diff = mod( grad_window - hist_orient(bin), 2*pi );
+            diff(find(diff == pi)) = -pi;
             % Accumulate the histogram bins
-            orient_hist(bin)=orient_hist(bin)+sum(sum(weightedMag.*max(1 - abs(diff)/hist_step,0)));
+            add = sum(weightedMag.*max(hist_step - abs(diff),0));
+            orient_hist(bin)=orient_hist(bin)+sum(add);
         end
 
         % Find peaks in the orientation histogram using nonmax suppression.
@@ -87,40 +91,18 @@ function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
 
         % Extract the value and index of the largest peak. 
         [max_peak_val ipeak] = max(peaks);
-
-        % Iterate over all peaks within 80% of the largest peak and add keypoints with
-        % the orientation corresponding to those peaks to the keypoint list.
         peak_val = max_peak_val;
-        while( peak_val > 0.8*max_peak_val )
-            % Interpolate the peak by fitting a parabola to the three histogram values
-            % closest to each peak.				            
-            A = [];
-            b = [];
-            for j = -1:1
-                A = [A; (hist_orient(ipeak)+hist_step*j).^2 (hist_orient(ipeak)+hist_step*j) 1];
-                bin = mod( ipeak + j + num_bins - 1, num_bins ) + 1;
-                b = [b; orient_hist(bin)];
-            end
-            c = pinv(A)*b;
-            max_orient = -c(2)/(2*c(1));
-            while( max_orient < -pi )
-                max_orient = max_orient + 2*pi;
-            end
-            while( max_orient >= pi )
-                max_orient = max_orient - 2*pi;
-            end            
-
-            % Store the keypoint position, orientation, and scale information
-            pos = [pos; [x y]];
+        while(peak_val > max_peak_val*0.8)
+            max_orient = hist_orient(ipeak)+pi/36;
+            pos = [pos; [x, y]];
             orient = [orient; max_orient];
-
-            % Get the next peak
+            % find the next peak
             peaks(ipeak) = 0;
             [peak_val ipeak] = max(peaks);
         end
     end
 
-
+    disp(size(orient));
 
     % The final of the SIFT algorithm is to extract feature descriptors for the keypoints.
     % The descriptors are a grid of gradient orientation histograms, where the sampling
@@ -179,8 +161,11 @@ function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
             end      
 
             % Compute the weighting for the x and y dimensions.
-            x_wght = max(1 - (abs(feat_rot_grid(1,:) - x_sample)/grid_spacing), 0);
-            y_wght = max(1 - (abs(feat_rot_grid(2,:) - y_sample)/grid_spacing), 0); 
+%             x_wght = max(1 - (abs(feat_rot_grid(1,:) - x_sample)/grid_spacing), 0);
+%             y_wght = max(1 - (abs(feat_rot_grid(2,:) - y_sample)/grid_spacing), 0); 
+            x_wght = abs(feat_rot_grid(1,:) - x_sample)/grid_spacing;
+            y_wght = abs(feat_rot_grid(2,:) - y_sample)/grid_spacing; 
+
             pos_wght = reshape(repmat(x_wght.*y_wght,8,1),1,128);
 
             % Compute the weighting for the orientation, rotating the gradient to the
