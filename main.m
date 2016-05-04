@@ -1,7 +1,7 @@
 function main()
     read_cache = 0;
     save_cache = 0;
-    
+    N = 5;
     % Load Images
 	disp('Loading Images');
     image_serial = 'grail/';
@@ -22,7 +22,7 @@ function main()
     % Features detection
     disp('Features detection');
 
-    for i = 1 : img_num
+    for i = 1 :N
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
         warpimg{i} = warpFunction(img, focals(i));
@@ -31,7 +31,7 @@ function main()
 
     % Features detection
     disp('Features detection');
-    for i = 1:5
+    for i = 1:N
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -43,7 +43,8 @@ function main()
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
             disp('key point');
             disp(size(fx));
-            [pos, orient, desc] = SIFTdescriptor(img, fx, fy);
+            %[pos, orient, desc] = SIFTdescriptor(img, fx, fy);
+            [pos, orient, desc] = WTFdescriptor(img, fx, fy);
             disp(size(pos));
 
             
@@ -67,7 +68,7 @@ function main()
     % DrawPoint(warpimg{1}, fys{1}, fxs{1});
     % DrawPoint(warpimg{2}, fys{2}, fxs{2});
 
-    for i = 1 : 4
+    for i = 1 : N-1
         match = ransac(warpimg{i}, descs{i}, poss{i}, warpimg{i + 1}, descs{i + 1}, poss{i + 1});
         trans = matchImage(match, poss{i}, poss{i + 1});
         blendImage(warpimg{i}, warpimg{i + 1}, trans);
