@@ -1,5 +1,4 @@
 function [pos, orient, desc] = SIFTdescriptor(img, feature_x, feature_y)
-
     orient = [];
     pos = [];
     desc = [];

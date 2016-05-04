@@ -1,7 +1,9 @@
 function [pos, orient, desc] = descriptorSIFT(im, featureX, featureY)
-    % borrowed and modified from Thomas F. El-Maraghi
+    % achin borrowed and modified from drakeguan
+    % drakeguan borrowed and modified from Thomas F. El-Maraghi
     % May 2004
-
+    % it's a linked list
+    
     pos = [];
     orient = [];
     desc = [];

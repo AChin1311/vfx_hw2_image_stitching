@@ -4,7 +4,7 @@ function main()
     N = 5;
     % Load Images
 	disp('Loading Images');
-    image_serial = 'grail/';
+    image_serial = 'parrington/';
     directory = ['image/' image_serial];
 	output_filename = [image_serial '_stitched.png'];
     files = dir([directory, '*.jpg']);
