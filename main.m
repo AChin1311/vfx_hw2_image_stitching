@@ -30,7 +30,7 @@ function main()
 
     % Features detection
     disp('Features detection');
-    for i = 1:5
+    for i = 1:3
         if read_cache
                 load(sprintf('image/%s/mat/fx_%02d.mat', image_serial, i));
                 load(sprintf('image/%s/mat/fy_%02d.mat', image_serial, i));
@@ -42,7 +42,7 @@ function main()
             [fx, fy] = HarrisDetection(img, 5, 1, 0.04, 3);   
             disp('key point');
             disp(size(fx));
-            [pos_, orient_, desc_] = SIFTdescriptor(img, fx, fy);
+            [pos_, orient_, desc_] = descriptorSIFT(img, fx, fy);
             disp(size(pos_));
 
             
@@ -65,11 +65,15 @@ function main()
     
     % DrawPoint(warpimg{1}, fys{1}, fxs{1});
     % DrawPoint(warpimg{2}, fys{2}, fxs{2});
-    for i = 1 : 4
+    imout = warpimg{1};
+    for i = 1 : 2
         match = ransac(warpimg{i}, descs{i}, poss{i}, warpimg{i + 1}, descs{i + 1}, poss{i + 1});
         trans = matchImage(match, poss{i}, poss{i + 1});
-        blendImage(warpimg{i}, warpimg{i + 1}, trans);
+        imout = blendImage(imout, warpimg{i + 1}, trans);
     end
+    
+    imshow(imout);
+    imwrite(imout, 'output.png');
     
     % DrawPoint(warpimg{1}, poss{1}(match(:, 1), 2), poss{1}(match(:, 1), 1));
     % DrawPoint(warpimg{2}, poss{2}(match(:, 2), 2), poss{2}(match(:, 2), 1));
