@@ -3,7 +3,7 @@ function match = ransac(des1, pos1, des2, pos2)
 	n = 3;
 	p = 0.5;
 	P = 0.9999;
-	k = ceil(log(1 - P) / log(1 - p ^ n)) + 100;
+	k = ceil(log(1 - P) / log(1 - p ^ n)) + 200;
 	threshold = 10;
 
 	% Find matched features
@@ -71,7 +71,7 @@ function match = ransac(des1, pos1, des2, pos2)
 		if size(match_tmp, 1) > size(match, 1)
 			match = match_tmp;
 		end
-    end
+    end 
 	% output theta with the largest number c
     disp('matched descriptor size');
     disp(size(match, 1));
