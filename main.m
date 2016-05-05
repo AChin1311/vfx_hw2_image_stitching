@@ -4,7 +4,7 @@ function main()
 
     % Load Images
 	disp('Loading Images');
-    image_serial = 'grail';
+    image_serial = 'book2';
     directory = ['image/' image_serial '/'];
 	output_filename = [image_serial '_stitched.png'];
     files = dir([directory, '/*.jpg']);
@@ -25,6 +25,7 @@ function main()
     for i = 1 :img_num
         ImagePath = [directory, files(i).name];
         img = imread(ImagePath); 
+        disp(i);
         warpimg{i} = warpFunction(img, focals(i));
         %img_array(:, :, :, i) = warpimg{i};
     end

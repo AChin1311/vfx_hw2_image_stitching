@@ -14,9 +14,9 @@ function imout = warpFunction(img, focal_length)
 			theta = atan(x_dis / focal_length);
 			h = y_dis / sqrt(x_dis ^ 2 + focal_length ^ 2);
 
-			x_p = round(s * theta) + mid(2);
-			y_p = round(s * h) + mid(1);
-
+			x_p = round(s * theta + mid(2));
+			y_p = round(s * h + mid(1));
+            
 			imout(y_p, x_p, :) = img(y, x, :);
 		end
     end
