@@ -9,10 +9,6 @@ function main()
 	output_filename = [image_serial '_stitched.png'];
     files = dir([directory, '/*.jpg']);
     img_num = length(files);
-    img_info = imfinfo([directory '/' files(1).name]);
-    imgy = img_info.Height;
-    imgx = img_info.Width;
-    img_array = {};
     
     % Load focal length
     disp('Loading focal length file')
@@ -27,7 +23,6 @@ function main()
         img = imread(ImagePath); 
         disp(i);
         warpimg{i} = warpFunction(img, focals(i));
-        %img_array(:, :, :, i) = warpimg{i};
     end
 
     % Features detection
